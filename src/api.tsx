@@ -1,3 +1,4 @@
+
 import { Client } from '@notionhq/client'
 import {
   DatabaseObjectResponse,
@@ -18,7 +19,6 @@ import {
   parseLinktext,
   request,
 } from 'obsidian'
-
 import invariant from 'tiny-invariant'
 import {
   getFileName,
@@ -151,7 +151,7 @@ export default class Api extends Component {
 
   async createFile(givenPath: string) {
     const path = normalizePath(givenPath + '.md').replace(/:/g, ' -')
-    let writeFile = app.vault.getAbstractFileByPathInsensitive(path)
+    let writeFile = this.app.vault.getAbstractFileByPathInsensitive(path)
 
     if (!(writeFile instanceof TFile)) {
       const folders = path.split('/').slice(0, -1)
@@ -554,7 +554,7 @@ export default class Api extends Component {
     })
 
     if (oldFile.path !== file.path) {
-      const oldFileObject = app.vault.getAbstractFileByPath(
+      const oldFileObject = this.app.vault.getAbstractFileByPath(
         normalizePath(oldFile.path + '/' + getFileName(oldFile.path) + '.md')
       )
 
@@ -563,7 +563,7 @@ export default class Api extends Component {
       } else if (!oldFileObject && file.path) {
         this.createFile(file.path + '/' + getFileName(file.path))
       } else if (oldFileObject && file.path) {
-        const parent = app.vault.getAbstractFileByPath(
+        const parent = this.app.vault.getAbstractFileByPath(
           normalizePath(oldFile.path)
         )
         if (!parent) return
@@ -571,7 +571,7 @@ export default class Api extends Component {
           oldFileObject,
           normalizePath(file.path + '/' + getFileName(file.path) + '.md')
         )
-        app.vault.rename(parent, file.path)
+        this.app.vault.rename(parent, file.path)
       }
     }
   }

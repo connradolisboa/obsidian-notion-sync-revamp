@@ -1,4 +1,9 @@
 {
-  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "types": ["@obsidianmd/api"],
+  },
   "include": ["src", "/packages"]
+   
 }

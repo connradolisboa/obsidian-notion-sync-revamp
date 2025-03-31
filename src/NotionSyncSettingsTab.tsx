@@ -1,12 +1,13 @@
-import { Notice, PluginSettingTab, Setting, App } from 'obsidian'
+import { Notice, PluginSettingTab, Setting } from 'obsidian'
 import NotionSync from './main'
 import { Root, createRoot } from 'react-dom/client'
+import App from './components/App'
 
 export default class NotionSyncSettingsTab extends PluginSettingTab {
   plugin: NotionSync
   root: Root
 
-  constructor(app: App, plugin: NotionSync) {
+  constructor(plugin: NotionSync) {
     super(app, plugin)
     this.plugin = plugin
   }
@@ -20,9 +21,9 @@ export default class NotionSyncSettingsTab extends PluginSettingTab {
       .setDesc(
         'The integration secret to your Notion database (visit notion.so/my-integrations to generate a new key).'
       )
-      .addText(text => {
+      .addText((text) => {
         text.setValue(this.plugin.settings.apiKey)
-        text.onChange(value => {
+        text.onChange((value) => {
           this.plugin.setSetting({ apiKey: value })
           this.renderRoot()
         })

@@ -3,10 +3,9 @@ import {
   DatabaseObjectResponse,
   PageObjectResponse,
   PropertyItemObjectResponse,
-  UserObjectResponse
+  UserObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import {
-  App,
   Component,
   Modal,
   Notice,
@@ -17,7 +16,7 @@ import {
   TFolder,
   normalizePath,
   parseLinktext,
-  request
+  request,
 } from 'obsidian'
 
 import invariant from 'tiny-invariant'
@@ -26,7 +25,7 @@ import {
   parsePageTitle,
   parseText,
   yamlToMarkdown,
-  yamlToNotion
+  yamlToNotion,
 } from './functions/parser'
 import NotionSync from './main'
 import { DateTime } from 'luxon'
@@ -65,11 +64,11 @@ export default class Api extends Component {
       conflicting: [],
       uploaded: [],
       downloaded: [],
-      skipped: []
+      skipped: [],
     }
 
     const loadedDatabases = Object.values(this.databases).filter(
-      db => this.settings.files[db.id]?.path
+      (db) => this.settings.files[db.id]?.path
     )
     const promises: Promise<any>[] = []
     for (let database of loadedDatabases) {
@@ -106,7 +105,8 @@ export default class Api extends Component {
                         modal.close()
                         new Notice('All conflicts resolved.')
                       } else content.render(SyncStatus(newConflicting))
-                    }}>
+                    }}
+                  >
                     upload
                   </button>
                   <button
@@ -125,7 +125,8 @@ export default class Api extends Component {
                         modal.close()
                         new Notice('All conflicts resolved.')
                       } else content.render(SyncStatus(newConflicting))
-                    }}>
+                    }}
+                  >
                     download
                   </button>
                 </div>
@@ -150,7 +151,7 @@ export default class Api extends Component {
 
   async createFile(givenPath: string) {
     const path = normalizePath(givenPath + '.md').replace(/:/g, ' -')
-    let writeFile = this.app.vault.getAbstractFileByPathInsensitive(path)
+    let writeFile = app.vault.getAbstractFileByPathInsensitive(path)
 
     if (!(writeFile instanceof TFile)) {
       const folders = path.split('/').slice(0, -1)
@@ -177,7 +178,7 @@ export default class Api extends Component {
   async getPerson(personId: string) {
     if (this.people[personId]) return this.people[personId]
     const person = await this.request<Client['users']['retrieve']>({
-      url: `https://api.notion.com/v1/users/${personId}`
+      url: `https://api.notion.com/v1/users/${personId}`,
     })
     this.people[personId] = person
     return person
@@ -186,7 +187,7 @@ export default class Api extends Component {
   async getPage(pageId: string, skipCache = false) {
     if (this.pages[pageId] && !skipCache) return this.pages[pageId]
     const page = (await this.request<Client['pages']['retrieve']>({
-      url: `https://api.notion.com/v1/pages/${pageId}`
+      url: `https://api.notion.com/v1/pages/${pageId}`,
     })) as PageObjectResponse
     this.pages[pageId] = page
     return page
@@ -195,10 +196,10 @@ export default class Api extends Component {
   async uploadFile(tFile: TFile, page_id: string, skipProgress = false) {
     const page: PageObjectResponse = await this.getPage(page_id)
     const [nameKey, name] = parsePageTitle(page)
-    await this.app.fileManager.processFrontMatter(tFile, frontmatter => {
+    await this.app.fileManager.processFrontMatter(tFile, (frontmatter) => {
       const notionProperties: Record<string, any> = {}
       for (let key of Object.keys(frontmatter).filter(
-        key => page.properties[key] !== undefined
+        (key) => page.properties[key] !== undefined
       )) {
         const parsedProperty = yamlToNotion(
           page.properties[key].type,
@@ -212,14 +213,14 @@ export default class Api extends Component {
           )
         ) {
           notionProperties[key] = {
-            [page.properties[key].type]: parsedProperty
+            [page.properties[key].type]: parsedProperty,
           }
         }
       }
 
       if (name !== tFile.basename) {
         notionProperties[nameKey] = {
-          title: [{ text: { content: tFile.basename } }]
+          title: [{ text: { content: tFile.basename } }],
         }
       }
 
@@ -232,11 +233,11 @@ export default class Api extends Component {
         url: `https://api.notion.com/v1/pages/${page.id}`,
         method: 'PATCH',
         body: {
-          properties: notionProperties
-        }
-      }).catch(err => {
+          properties: notionProperties,
+        },
+      }).catch((err) => {
         console.error('error:', `https://api.notion.com/v1/pages/${page.id}`, {
-          properties: notionProperties
+          properties: notionProperties,
         })
       })
     })
@@ -266,7 +267,7 @@ export default class Api extends Component {
 
     const convertedProperties = Object.entries(await this.notionToYaml(page))
 
-    await this.app.fileManager.processFrontMatter(tFile, frontmatter => {
+    await this.app.fileManager.processFrontMatter(tFile, (frontmatter) => {
       for (let [key, value] of convertedProperties) {
         if (value === name) continue
         frontmatter[key] = value
@@ -297,7 +298,7 @@ export default class Api extends Component {
         : date.end
         ? {
             start: fromISO(date.start),
-            end: fromISO(date.end)
+            end: fromISO(date.end),
           }
         : fromISO(date.start)
 
@@ -312,7 +313,7 @@ export default class Api extends Component {
       case 'email':
         return property.email ?? ''
       case 'files':
-        return property.files.map(file => file.name)
+        return property.files.map((file) => file.name)
       case 'formula':
         switch (property.formula.type) {
           case 'boolean':
@@ -328,15 +329,15 @@ export default class Api extends Component {
       case 'created_time':
         return fromISO(property[property.type])
       case 'multi_select':
-        return property.multi_select.map(item => item.name)
+        return property.multi_select.map((item) => item.name)
       case 'number':
         return String(property.number)
       case 'people':
         return (
           await Promise.all(
-            property.people.map(person => this.getPerson(person.id))
+            property.people.map((person) => this.getPerson(person.id))
           )
-        ).map(user => user.name ?? '')
+        ).map((user) => user.name ?? '')
 
       case 'phone_number':
       case 'url':
@@ -344,9 +345,9 @@ export default class Api extends Component {
       case 'relation':
         return (
           await Promise.all(
-            property.relation.map(value => this.getPage(value.id))
+            property.relation.map((value) => this.getPage(value.id))
           )
-        ).map(page => '[[' + parsePageTitle(page) + ']]')
+        ).map((page) => '[[' + parsePageTitle(page) + ']]')
       case 'rich_text':
       case 'title':
         return parseText(property[property.type])
@@ -354,7 +355,7 @@ export default class Api extends Component {
         switch (property.rollup.type) {
           case 'array':
             return await Promise.all(
-              property.rollup.array.map(property =>
+              property.rollup.array.map((property) =>
                 this.parseProperty({ ...property, id: '' })
               )
             )
@@ -403,11 +404,11 @@ export default class Api extends Component {
               : {
                   timestamp: 'last_edited_time',
                   last_edited_time: {
-                    after: lastSyncISO
-                  }
-                }
-        }
-      }).catch(err => console.warn('error:', err))
+                    after: lastSyncISO,
+                  },
+                },
+        },
+      }).catch((err) => console.warn('error:', err))
       start_cursor = newPages['next_cursor']
       pages.push(...newPages.results)
     } while (newPages['has_more'])
@@ -427,13 +428,13 @@ export default class Api extends Component {
         ? []
         : force === 'upload'
         ? files
-        : files.filter(file => file.file.mtime > lastSync)
+        : files.filter((file) => file.file.mtime > lastSync)
     const databasePath =
       normalizePath(this.settings.files[databaseId].path) + '/'
 
     for (let page of pages) {
       const pageTitle = parsePageTitle(page)
-      const file = files.find(file => file['Notion ID'] === page.id)
+      const file = files.find((file) => file['Notion ID'] === page.id)
       const tFile = this.app.vault.getAbstractFileByPathInsensitive(
         file ? file.file.path : databasePath + pageTitle + '.md'
       )
@@ -444,7 +445,7 @@ export default class Api extends Component {
       ) {
         this.progress.conflicting.push({
           page,
-          tFile
+          tFile,
         })
       } else {
         await this.downloadPage(page, tFile, database.path)
@@ -463,15 +464,15 @@ export default class Api extends Component {
             parent: { database_id: databaseId },
             properties: {
               Name: {
-                title: [{ text: { content: tFile.basename } }]
-              }
-            }
+                title: [{ text: { content: tFile.basename } }],
+              },
+            },
           },
-          method: 'POST'
+          method: 'POST',
         })
         await this.app.fileManager.processFrontMatter(
           tFile,
-          frontmatter => (frontmatter['Notion ID'] = page.id)
+          (frontmatter) => (frontmatter['Notion ID'] = page.id)
         )
         await this.uploadFile(tFile, page.id as string)
       } else await this.uploadFile(tFile, file['Notion ID'] as string)
@@ -503,10 +504,10 @@ export default class Api extends Component {
         Authorization: `Bearer ${this.settings.apiKey}`,
         'Notion-Version': '2022-06-28',
         'Content-Type': 'application/json',
-        Accept: 'application/json'
+        Accept: 'application/json',
       },
-      body: config.body ? JSON.stringify(config.body) : undefined
-    }).catch(err => {
+      body: config.body ? JSON.stringify(config.body) : undefined,
+    }).catch((err) => {
       console.warn('error:', err)
     })
     if (!result) {
@@ -522,14 +523,14 @@ export default class Api extends Component {
       url: 'https://api.notion.com/v1/search',
       method: 'POST',
       body: {
-        filter: { property: 'object', value: 'database' }
-      }
+        filter: { property: 'object', value: 'database' },
+      },
     })
 
     const databases = Object.fromEntries(
       search.results.map((database: DatabaseObjectResponse) => [
         database.id,
-        database
+        database,
       ])
     )
     return databases
@@ -537,23 +538,23 @@ export default class Api extends Component {
 
   updateFile(id: string, file: NotionFile) {
     const defaultFile: NotionFile = {
-      path: ''
+      path: '',
     }
 
     const oldFile: NotionFile = {
       ...defaultFile,
-      ...this.settings.files[id]
+      ...this.settings.files[id],
     }
 
     this.setSetting({
       files: {
         ...this.settings.files,
-        [id]: { ...this.settings.files[id], ...file }
-      }
+        [id]: { ...this.settings.files[id], ...file },
+      },
     })
 
     if (oldFile.path !== file.path) {
-      const oldFileObject = this.app.vault.getAbstractFileByPath(
+      const oldFileObject = app.vault.getAbstractFileByPath(
         normalizePath(oldFile.path + '/' + getFileName(oldFile.path) + '.md')
       )
 
@@ -562,7 +563,7 @@ export default class Api extends Component {
       } else if (!oldFileObject && file.path) {
         this.createFile(file.path + '/' + getFileName(file.path))
       } else if (oldFileObject && file.path) {
-        const parent = this.app.vault.getAbstractFileByPath(
+        const parent = app.vault.getAbstractFileByPath(
           normalizePath(oldFile.path)
         )
         if (!parent) return
@@ -570,7 +571,7 @@ export default class Api extends Component {
           oldFileObject,
           normalizePath(file.path + '/' + getFileName(file.path) + '.md')
         )
-        this.app.vault.rename(parent, file.path)
+        app.vault.rename(parent, file.path)
       }
     }
   }

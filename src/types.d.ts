@@ -1,6 +1,5 @@
 import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
 import Api from './api'
-import { TFile } from 'obsidian'
 
 declare global {
   type NotionSyncSettings = {
@@ -20,9 +19,5 @@ declare global {
 declare module 'obsidian' {
   interface Vault {
     getAbstractFileByPathInsensitive: (path: string) => TFile | null
-  }
-
-  interface App {
-    isMobile: boolean
   }
 }

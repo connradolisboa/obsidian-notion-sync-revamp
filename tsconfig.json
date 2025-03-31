@@ -2,7 +2,8 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "jsx": "react-jsx",
-    "types": ["@obsidianmd/api"],
+    "downlevelIteration": true,
+    
   },
   "include": ["src", "/packages"]
    

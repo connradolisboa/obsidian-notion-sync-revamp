@@ -15,7 +15,7 @@
 		"@notionhq/client": "^2.3.0",
 		"lodash": "^4.17.21",
 		"luxon": "^3.6.1",
-		"obsidian-dataview": "^0.4.21",
+		"obsidian-dataview": "^0.5.51",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"tiny-invariant": "^1.3.3"

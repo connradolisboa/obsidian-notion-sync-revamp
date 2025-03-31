@@ -1,4 +1,3 @@
-
 import { Client } from '@notionhq/client'
 import {
   DatabaseObjectResponse,
@@ -19,6 +18,7 @@ import {
   parseLinktext,
   request,
 } from 'obsidian'
+
 import invariant from 'tiny-invariant'
 import {
   getFileName,

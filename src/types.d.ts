@@ -26,3 +26,5 @@ declare module 'obsidian' {
     isMobile: boolean
   }
 }
+
+import { DataviewApi } from "obsidian-dataview";

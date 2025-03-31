@@ -8,7 +8,7 @@ export default class NotionSyncSettingsTab extends PluginSettingTab {
   root: Root
 
   constructor(plugin: NotionSync) {
-    super(app, plugin)
+    super(plugin.app, plugin)
     this.plugin = plugin
   }
 

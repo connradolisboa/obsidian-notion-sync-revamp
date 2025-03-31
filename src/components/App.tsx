@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import Api from '../api'
 import { parseTitle } from '../functions/parser'
 import { Setting, ToggleComponent } from 'obsidian'
-import Toggle from '../../../../packages/obsidian-components/Toggle'
 import _ from 'lodash'
 
 export default function App({ obsidianApi }: { obsidianApi: Api }) {

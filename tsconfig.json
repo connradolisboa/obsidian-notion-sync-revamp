@@ -3,7 +3,10 @@
     "esModuleInterop": true,
     "jsx": "react-jsx",
     "downlevelIteration": true,
-    
+    "paths": {
+      "*": [
+        "./node_modules/obsidian-dataview/lib/*"]
+    },
   },
   "include": ["src", "/packages"]
    

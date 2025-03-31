@@ -18,7 +18,6 @@ import {
   parseLinktext,
   request,
 } from 'obsidian'
-
 import invariant from 'tiny-invariant'
 import {
   getFileName,
@@ -34,7 +33,6 @@ import { DataArray, Literal, PageMetadata, getAPI } from 'obsidian-dataview'
 import { createRoot } from 'react-dom/client'
 import { useState } from 'react'
 import { log } from 'console'
-
 export type Progress = {
   conflicting: { page: PageObjectResponse; tFile: TFile }[]
   skipped: string[]

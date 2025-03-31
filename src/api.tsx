@@ -345,7 +345,7 @@ export default class Api extends Component {
           await Promise.all(
             property.relation.map((value) => this.getPage(value.id))
           )
-        ).map((page) => '[[' + parsePageTitle(page) + ']]')
+        ).map((page) => '[[' + parsePageTitle(page)[1] + ']]')
       case 'rich_text':
       case 'title':
         return parseText(property[property.type])

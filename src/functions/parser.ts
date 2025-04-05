@@ -119,6 +119,11 @@ export function yamlToNotion(
 export function yamlToMarkdown(
   property: boolean | number | string | string[] | object
 ): string {
+  if (typeof property === 'object' && property !== null) {
+    if ('url' in property && typeof property.url === 'string') {
+      return property.url  // Return the Notion page URL
+    }
+  }
   switch (typeof property) {
     case 'boolean':
       return property ? 'X' : ' '

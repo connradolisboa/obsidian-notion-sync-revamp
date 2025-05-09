@@ -1,8 +1,12 @@
 import { Notice, Plugin } from 'obsidian'
 import NotionSyncSettingsTab from './NotionSyncSettingsTab'
-import Api from './api'
 import { DateTime } from 'luxon'
 import invariant from 'tiny-invariant'
+import { NotionClient } from './services/NotionClient'
+import { PropertyMapper } from './services/PropertyMapper'
+import { FileManager } from './services/FileManager'
+import { SyncService } from './services/SyncService'
+import { ErrorService } from './services/ErrorService'
 
 const DEFAULT_SETTINGS: NotionSyncSettings = {
   files: {},
@@ -13,19 +17,40 @@ const DEFAULT_SETTINGS: NotionSyncSettings = {
 
 export default class NotionSync extends Plugin {
   settings: NotionSyncSettings
-  api: Api
+  notionClient: NotionClient
+  propertyMapper: PropertyMapper
+  fileManager: FileManager
+  syncService: SyncService
 
   async onload() {
     await this.loadSettings()
     // called from obsidianApi etc.
     this.setSetting = this.setSetting.bind(this)
 
+    // Initialize error service
+    const errorService = new ErrorService()
+
+    // Initialize services
+    this.notionClient = new NotionClient(this.settings.apiKey, errorService)
+    this.propertyMapper = new PropertyMapper(this.notionClient)
+    this.fileManager = new FileManager(this.app, this.propertyMapper, errorService)
+    this.syncService = new SyncService(
+      this.app,
+      this.notionClient,
+      this.propertyMapper,
+      this.fileManager,
+      this.settings,
+      this.setSetting
+    )
+
+    // Load databases
+    await this.notionClient.loadDatabases()
+
     this.addSettingTab(new NotionSyncSettingsTab(this))
-    this.api = new Api(this.app, this.settings, this.setSetting)
 
     this.addCommand({
       name: 'Sync',
-      callback: () => this.api.sync(),
+      callback: () => this.syncService.sync(),
       id: 'sync',
     })
 
@@ -33,8 +58,8 @@ export default class NotionSync extends Plugin {
       name: 'Download all files',
       id: 'force-download',
       callback: async () => {
-        this.setSetting({ lastSync: 0 })
-        await this.api.sync('download')
+        await this.setSetting({ lastSync: 0 })
+        await this.syncService.sync('download')
       },
     })
 
@@ -43,7 +68,7 @@ export default class NotionSync extends Plugin {
       id: 'force-download-file',
       editorCallback: async (_editor, ctx) => {
         if (!ctx.file) return
-        await this.app.fileManager.processFrontMatter(
+        await this.fileManager.updateFrontmatter(
           ctx.file,
           async (frontmatter) => {
             invariant(ctx.file)
@@ -52,8 +77,8 @@ export default class NotionSync extends Plugin {
               new Notice('No Notion ID property.')
               return
             }
-            const page = await this.api.getPage(id, true)
-            await this.api.downloadPage(page, ctx.file, ctx.file.path, true)
+            const page = await this.notionClient.getPage(id, true)
+            await this.syncService.downloadPage(page, ctx.file, ctx.file.path, true)
             new Notice('Notion sync: downloaded.')
           }
         )
@@ -65,7 +90,7 @@ export default class NotionSync extends Plugin {
       id: 'force-upload-file',
       editorCallback: async (_editor, ctx) => {
         if (!ctx.file) return
-        await this.app.fileManager.processFrontMatter(
+        await this.fileManager.updateFrontmatter(
           ctx.file,
           async (frontmatter) => {
             invariant(ctx.file)
@@ -74,7 +99,7 @@ export default class NotionSync extends Plugin {
               new Notice('No Notion ID property.')
               return
             }
-            await this.api.uploadFile(ctx.file, id, true)
+            await this.syncService.uploadFile(ctx.file, id, true)
             new Notice('Notion sync: uploaded.')
           }
         )
@@ -85,8 +110,8 @@ export default class NotionSync extends Plugin {
       name: 'Upload all files',
       id: 'force-upload',
       callback: async () => {
-        this.setSetting({ lastSync: 0 })
-        await this.api.sync('upload')
+        await this.setSetting({ lastSync: 0 })
+        await this.syncService.sync('upload')
       },
     })
   }

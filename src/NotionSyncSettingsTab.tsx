@@ -40,6 +40,14 @@ export default class NotionSyncSettingsTab extends PluginSettingTab {
   }
 
   async renderRoot() {
-    this.root.render(<App obsidianApi={this.plugin.api} />)
+    this.root.render(
+      <App
+        notionClient={this.plugin.notionClient}
+        fileManager={this.plugin.fileManager}
+        propertyMapper={this.plugin.propertyMapper}
+        settings={this.plugin.settings}
+        setSetting={this.plugin.setSetting}
+      />
+    )
   }
 }

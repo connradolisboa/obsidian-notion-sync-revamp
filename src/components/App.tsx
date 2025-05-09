@@ -1,11 +1,20 @@
 import { useEffect } from 'react'
-import Api from '../api'
-import { parseTitle } from '../functions/parser'
 import { Setting, ToggleComponent } from 'obsidian'
 import _ from 'lodash'
+import { NotionClient } from '../services/NotionClient'
+import { FileManager } from '../services/FileManager'
+import { PropertyMapper } from '../services/PropertyMapper'
 
-export default function App({ obsidianApi }: { obsidianApi: Api }) {
-	const apiKey = obsidianApi.settings.apiKey
+interface AppProps {
+  notionClient: NotionClient;
+  fileManager: FileManager;
+  propertyMapper: PropertyMapper;
+  settings: NotionSyncSettings;
+  setSetting: (settings: Partial<NotionSyncSettings>) => Promise<void>;
+}
+
+export default function App({ notionClient, fileManager, propertyMapper, settings, setSetting }: AppProps) {
+	const apiKey = settings.apiKey
 	useEffect(() => {}, [apiKey])
 
 	if (!apiKey)
@@ -32,17 +41,17 @@ export default function App({ obsidianApi }: { obsidianApi: Api }) {
 
 	return (
 		<div className="font-regular">
-			{_.sortBy(Object.values(obsidianApi.databases), (database) =>
-				parseTitle(database)
+			{_.sortBy(Object.values(notionClient.getDatabases()), (database) =>
+				propertyMapper.parseText(database.title)
 			).map((database) => {
-				const title = parseTitle(database)
+				const title = propertyMapper.parseText(database.title)
 
 				return (
 					<div className="mb-1 flex">
 						<div className="w-1/2 flex-none">{title}</div>
 						<input
 							defaultValue={
-								obsidianApi.settings.files[database.id]?.path ??
+								settings.files[database.id]?.path ??
 								''
 							}
 							className="w-1/2"
@@ -50,9 +59,9 @@ export default function App({ obsidianApi }: { obsidianApi: Api }) {
 							spellCheck="false"
 							placeholder="no folder selected"
 							onBlur={(ev) =>
-								obsidianApi.updateFile(database.id, {
+								fileManager.updateFile(database.id, {
 									path: ev.target.value,
-								})
+								}, settings, setSetting)
 							}
 						></input>
 					</div>
